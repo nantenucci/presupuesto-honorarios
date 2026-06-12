@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presupuesto de Honorarios — Antenucci Abogado</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1a2e4a;
+    --navy-mid: #2b4a6f;
+    --teal: #1a7a7a;
+    --green: #2d7a3a;
+    --light-blue: #e8f0f7;
+    --light-green: #e8f5e9;
+    --border: #ccd6e0;
+    --text: #1a1a2e;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    color: var(--text);
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── PANEL FORMULARIO ── */
+  .panel {
+    background: #fff;
+    border-right: 2px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .panel h2 {
+    font-size: 15px;
+    color: var(--navy);
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--navy-mid);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    margin: 18px 0 8px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    color: #444;
+    margin-bottom: 3px;
+  }
+
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 13px;
+    margin-bottom: 11px;
+    color: var(--text);
+    background: #fafcff;
+    transition: border .2s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--navy-mid);
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 48px; }
+
+  .jus-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .jus-row > div { flex: 1; }
+  .jus-row .btn-fetch {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 11px;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .jus-row .btn-fetch:hover { background: #155f5f; }
+
+  .radio-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 11px;
+  }
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .cuotas-block { display: none; }
+  .cuotas-block.visible { display: block; }
+
+  .btn-print {
+    width: 100%;
+    padding: 11px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    letter-spacing: .4px;
+  }
+  .btn-print:hover { background: var(--navy-mid); }
+
+  .jus-note {
+    font-size: 11px;
+    color: #666;
+    margin-top: -8px;
+    margin-bottom: 10px;
+  }
+  .jus-note a { color: var(--teal); }
+
+  .jus-status {
+    font-size: 11px;
+    margin-top: -8px;
+    margin-bottom: 10px;
+    padding: 5px 9px;
+    border-radius: 4px;
+    display: none;
+  }
+  .jus-status.ok  { background: #e8f5e9; color: #2e7d32; display: block; }
+  .jus-status.err { background: #fff3e0; color: #e65100; display: block; }
+  .jus-status.loading { background: #e3f2fd; color: #1565c0; display: block; }
+
+  .btn-actualizar {
+    width: 100%;
+    padding: 8px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .btn-actualizar:hover { background: #c8e6c9; }
+  .btn-actualizar:disabled { opacity: .6; cursor: default; }
+
+  /* ── PREVIEW ── */
+  .preview-wrap {
+    padding: 30px;
+    overflow-y: auto;
+    background: #e8edf2;
+  }
+
+  .doc {
+    background: #fff;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 44px 50px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.12);
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #1a1a2e;
+  }
+
+  /* Header */
+  .doc-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .doc-header .firma {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--navy);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .doc-header .abogado {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--teal);
+    margin: 4px 0 2px;
+  }
+  .doc-header .datos {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .doc-divider {
+    border: none;
+    border-top: 2px solid var(--navy);
+    margin: 18px 0 24px;
+  }
+
+  /* Título presupuesto */
+  .doc-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* Tabla info cliente */
+  .tbl-info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+  .tbl-info td {
+    padding: 7px 10px;
+    border: 1px solid #b0bec5;
+    font-size: 12.5px;
+  }
+  .tbl-info td:first-child {
+    background: var(--navy);
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 11px;
+    width: 130px;
+    letter-spacing: .4px;
+  }
+  .tbl-info td:last-child { background: #f5f9ff; }
+  .tbl-info .etapa-val { font-weight: bold; color: var(--navy); }
+
+  /* Tabla cuotas */
+  .tbl-cuotas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+  .tbl-cuotas th {
+    background: #eaecef;
+    color: #555;
+    padding: 9px 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border: 1px solid #ccd0d5;
+    font-weight: bold;
+  }
+  .tbl-cuotas td {
+    padding: 8px 10px;
+    border: 1px solid #dde2e7;
+    font-size: 12.5px;
+  }
+  .tbl-cuotas tr:nth-child(even) td { background: #f7f9fb; }
+  .tbl-cuotas td:first-child {
+    text-align: center;
+    width: 42px;
+    font-weight: bold;
+    color: var(--teal);
+  }
+  .tbl-cuotas td:nth-child(3) { text-align: center; }
+  .tbl-cuotas td:last-child { text-align: right; font-weight: bold; }
+
+  .tbl-cuotas tr.total td {
+    background: #eaecef !important;
+    color: #444;
+    font-weight: 900;
+    font-size: 13px;
+    border-color: #ccd0d5;
+  }
+  .tbl-cuotas tr.total td:last-child {
+    background: #dce8dd !important;
+    color: #1a3d1a;
+    font-size: 14.5px;
+  }
+
+  .tbl-cuotas tr.anticipo td {
+    background: #fff8e1 !important;
+    border-color: #ffe082 !important;
+    font-weight: bold;
+    color: #5d4037;
+  }
+  .tbl-cuotas tr.anticipo td:first-child { color: #e65100; }
+  .tbl-cuotas tr.anticipo td:last-child { color: #e65100; font-size: 13.5px; }
+  .tbl-cuotas tr.sep-anticipo td {
+    padding: 2px 0;
+    border: none;
+    background: transparent !important;
+  }
+
+  /* Nota JUS */
+  .nota-jus {
+    border: 1px solid #a5d6a7;
+    background: var(--light-green);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    font-size: 11.5px;
+    color: #2e4a2e;
+    line-height: 1.6;
+  }
+  .nota-jus em { display: block; margin-top: 5px; color: #3a5a3a; }
+
+  /* Transferencia */
+  .trf-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 5px;
+    margin-bottom: 12px;
+  }
+  .tbl-trf {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tbl-trf td {
+    padding: 7px 10px;
+    border: 1px solid #b0bec5;
+    font-size: 12.5px;
+  }
+  .tbl-trf td:first-child {
+    background: var(--navy);
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 11px;
+    width: 130px;
+    letter-spacing: .4px;
+  }
+  .tbl-trf td:last-child { background: #f5f9ff; }
+  .tbl-trf .alias-val { font-weight: bold; font-size: 14px; }
+  .tbl-trf .cvu-val { font-family: monospace; font-size: 12px; letter-spacing: .5px; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; }
+    .panel { display: none !important; }
+    .app { grid-template-columns: 1fr; }
+    .preview-wrap { padding: 0; background: #fff; overflow: visible; }
+    .doc { box-shadow: none; max-width: 100%; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ FORMULARIO ══ -->
+  <aside class="panel" id="formPanel">
+    <h2>⚖ Datos del Presupuesto</h2>
+
+    <div class="section-title">Firma / Profesional</div>
+    <label>Nombre de la firma</label>
+    <input type="text" id="firma" value="ANTENUCCI ABOGADO PENAL">
+    <label>Profesional</label>
+    <input type="text" id="abogado" value="Dr. NÉSTOR ANTENUCCI">
+    <label>Especialidad / Matrículas</label>
+    <input type="text" id="especialidad" value="Abogado Penalista — T° 89 F° 743 C.P.A.C.F. | T° XI F° 165 C.A.Q. | T° 104 F° 823 C.F.A.S.M. | T° XLVIII F° 118 C.A.R.">
+    <label>Dirección</label>
+    <input type="text" id="direccion" value="Virasoro 1164, Rosario, Santa Fe | WSP 341-6633024">
+
+    <div class="section-title">Datos del Cliente</div>
+    <label>Cliente</label>
+    <input type="text" id="cliente" value="TORRES, Gonzalo Matías">
+    <label>CUIJ / FRO / N° Causa</label>
+    <input type="text" id="cuij" value="21-09585164-6">
+    <label>Carátula</label>
+    <textarea id="caratula">Torres, Gonzalo Matías s/ Delitos contra la Integridad Sexual</textarea>
+    <label>Etapa procesal</label>
+    <select id="etapaSelect" onchange="onEtapaSelect()">
+      <optgroup label="── SANTA FE (CPP Ley 12.734) ──">
+        <option>Investigación Penal Preparatoria (IPP)</option>
+        <option>Declaración del Imputado</option>
+        <option>Formulación de Cargos</option>
+        <option>Prisión Preventiva / Medidas Cautelares</option>
+        <option>Suspensión del Juicio a Prueba (Probation)</option>
+        <option>Juicio Abreviado</option>
+        <option>Conciliación / Mediación Penal</option>
+        <option selected>Etapa Intermedia (Control de Acusación)</option>
+        <option>Audiencia Preliminar al Juicio</option>
+        <option>Juicio Oral y Público (Debate)</option>
+        <option>Sentencia</option>
+        <option>Recurso de Apelación (Cámara de Apelación en lo Penal)</option>
+        <option>Recurso de Casación (TSJ Santa Fe)</option>
+        <option>Ejecución de la Pena</option>
+      </optgroup>
+      <optgroup label="── FEDERAL (CPPF Ley 27.063) ──">
+        <option>Investigación Preparatoria (CPPF)</option>
+        <option>Formalización de la Investigación (CPPF)</option>
+        <option>Prisión Preventiva / Medidas Cautelares (CPPF)</option>
+        <option>Suspensión del Juicio a Prueba — Federal (Probation)</option>
+        <option>Procedimiento Abreviado (CPPF)</option>
+        <option>Acuerdo Pleno (CPPF)</option>
+        <option>Etapa Intermedia — Control de Acusación (CPPF)</option>
+        <option>Audiencia Preliminar al Debate (CPPF)</option>
+        <option>Juicio Oral y Público — Federal</option>
+        <option>Sentencia — Federal</option>
+        <option>Recurso de Apelación (Cámara Federal de Apelaciones)</option>
+        <option>Recurso de Casación (Cámara Federal de Casación Penal)</option>
+        <option>Recurso Extraordinario Federal / CSJN</option>
+        <option>Ejecución de la Pena — Federal</option>
+      </optgroup>
+      <optgroup label="── CÓDIGO VIEJO / NACIONAL (CPPN) ──">
+        <option>Sumario / Instrucción</option>
+        <option>Indagatoria</option>
+        <option>Procesamiento</option>
+        <option>Falta de Mérito</option>
+        <option>Sobreseimiento</option>
+        <option>Excarcelación / Eximición de Prisión</option>
+        <option>Elevación a Juicio (CPPN)</option>
+        <option>Juicio Oral — Tribunal Oral (CPPN)</option>
+        <option>Sentencia — CPPN</option>
+        <option>Recurso de Casación (CPPN)</option>
+        <option>Recurso Extraordinario Federal (CPPN)</option>
+        <option>Ejecución Penal (CPPN)</option>
+      </optgroup>
+      <optgroup label="──────────────────">
+        <option value="__otro__">✏ Otra etapa (escribir)...</option>
+      </optgroup>
+    </select>
+    <input type="text" id="etapa" value="Etapa Intermedia (Control de Acusación)" style="display:none" placeholder="Escribí la etapa personalizada...">
+
+    <div class="section-title">Arancel JUS</div>
+    <button class="btn-actualizar" id="btnActualizar" onclick="fetchJus()">↻ Actualizar JUS automáticamente</button>
+    <div class="jus-status" id="jusStatus"></div>
+    <div class="jus-row">
+      <div>
+        <label>Valor del JUS ($)</label>
+        <input type="number" id="valorJus" value="132863.18" step="0.01" min="0">
+      </div>
+      <a class="btn-fetch" href="https://www.cajaforense.com/index.php?action=portal/show&ssnId_session=355&id_section=148&mnuId_parent=2" target="_blank" title="Ver tabla JUS vigente">Ver tabla</a>
+    </div>
+    <div class="jus-note">
+      Referencia: <a href="https://www.cajaforense.com/index.php?action=portal/show&ssnId_session=355&id_section=148&mnuId_parent=2" target="_blank">Caja Forense — Tabla JUS vigente</a>
+    </div>
+
+    <label>Fuente / publicación</label>
+    <input type="text" id="fuenteJus" value="Tabla publicada desde el 22/05/2026 (Caja Forense, Tabla_pesos_a_jus_86)">
+
+    <div class="section-title">Honorarios</div>
+    <label>Total de JUS</label>
+    <input type="number" id="totalJus" value="12" min="1" step="0.5">
+
+    <label>Modalidad de pago</label>
+    <div class="radio-group">
+      <label><input type="radio" name="modalidad" value="cuotas" checked> En cuotas</label>
+      <label><input type="radio" name="modalidad" value="unico"> Pago único</label>
+    </div>
+
+    <div class="cuotas-block visible" id="cuotasBlock">
+      <label>Cantidad de cuotas</label>
+      <input type="number" id="numCuotas" value="12" min="1" max="60">
+      <label>JUS por cuota</label>
+      <input type="number" id="jusPorCuota" value="1" min="0.5" step="0.5">
+      <label>Mes/año inicio (1º cuota)</label>
+      <input type="text" id="mesInicio" value="Junio 2026" placeholder="Ej: Junio 2026">
+      <label>Día de pago</label>
+      <input type="text" id="diaPago" value="Del 1 al 10" placeholder="Ej: Del 1 al 10">
+    </div>
+
+    <div class="section-title">Anticipo</div>
+    <div class="radio-group">
+      <label><input type="radio" name="tipoAnticipo" value="ninguno" checked onchange="render()"> Sin anticipo</label>
+      <label><input type="radio" name="tipoAnticipo" value="pesos" onchange="render()"> En $</label>
+      <label><input type="radio" name="tipoAnticipo" value="jus" onchange="render()"> En JUS</label>
+    </div>
+    <div id="anticipoBlock" style="display:none">
+      <label id="anticipoLabel">Monto del anticipo ($)</label>
+      <input type="number" id="montoAnticipo" value="0" min="0" step="0.01">
+      <label>Fecha / descripción del anticipo</label>
+      <input type="text" id="fechaAnticipo" value="A la firma del presente" placeholder="Ej: A la firma del presente">
+    </div>
+
+    <div class="section-title">Datos bancarios</div>
+    <label>Alias CBU</label>
+    <input type="text" id="alias" value="antenucci.honorarios">
+    <label>Titular</label>
+    <input type="text" id="titular" value="ANTENUCCI, Néstor">
+    <label>CVU</label>
+    <input type="text" id="cvu" value="0000003100064237722218">
+
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir / Exportar PDF</button>
+  </aside>
+
+  <!-- ══ PREVIEW ══ -->
+  <main class="preview-wrap">
+    <div class="doc" id="doc">
+
+      <div class="doc-header">
+        <div class="firma" id="p-firma">ANTENUCCI ABOGADO PENAL</div>
+        <div class="abogado" id="p-abogado">Dr. NÉSTOR ANTENUCCI</div>
+        <div class="datos" id="p-especialidad">Abogado Penalista — T° 89 F° 743 C.P.A.C.F. | T° XI F° 165 C.A.Q. | T° 104 F° 823 C.F.A.S.M. | T° XLVIII F° 118 C.A.R.</div>
+        <div class="datos" id="p-direccion">Virasoro 1164, Rosario, Santa Fe | WSP 341-6633024</div>
+      </div>
+      <hr class="doc-divider">
+
+      <div class="doc-title">Presupuesto de Honorarios Profesionales</div>
+
+      <table class="tbl-info">
+        <tr><td>Cliente</td><td id="p-cliente">TORRES, Gonzalo Matías</td></tr>
+        <tr><td>CUIJ / FRO / N° Causa</td><td id="p-cuij">21-09585164-6</td></tr>
+        <tr><td>Carátula</td><td id="p-caratula">Torres, Gonzalo Matías s/ Delitos contra la Integridad Sexual</td></tr>
+        <tr><td>Etapa</td><td><span class="etapa-val" id="p-etapa">Etapa Intermedia (Control de Acusación)</span></td></tr>
+      </table>
+
+      <table class="tbl-cuotas" id="p-tabla">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Período de Pago</th>
+            <th>JUS</th>
+            <th>Importe</th>
+          </tr>
+        </thead>
+        <tbody id="p-filas"></tbody>
+      </table>
+
+      <div class="nota-jus" id="p-nota"></div>
+
+      <div class="trf-title">Datos para Transferencia</div>
+      <table class="tbl-trf">
+        <tr><td>Alias CBU</td><td><span class="alias-val" id="p-alias">antenucci.honorarios</span></td></tr>
+        <tr><td>Titular</td><td id="p-titular">ANTENUCCI, Néstor</td></tr>
+        <tr><td>CVU</td><td><span class="cvu-val" id="p-cvu">0000003100064237722218</span></td></tr>
+        <tr><td>Concepto</td><td id="p-concepto"></td></tr>
+      </table>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ── helpers ──
+  const fmt = n => '$ ' + Number(n).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const get = id => document.getElementById(id);
+  const set = (id, v) => { const el = get(id); if(el) el.textContent = v; };
+
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function parseMesAnio(str) {
+    const parts = str.trim().split(' ');
+    const m = MESES.findIndex(x => x.toLowerCase() === (parts[0]||'').toLowerCase());
+    const y = parseInt(parts[1]) || new Date().getFullYear();
+    return { m: m >= 0 ? m : 0, y };
+  }
+
+  function addMeses({m, y}, n) {
+    m += n;
+    y += Math.floor(m / 12);
+    m = m % 12;
+    return { m, y };
+  }
+
+  function render() {
+    // header
+    set('p-firma', get('firma').value);
+    set('p-abogado', get('abogado').value);
+    set('p-especialidad', get('especialidad').value);
+    set('p-direccion', get('direccion').value);
+
+    // cliente
+    set('p-cliente', get('cliente').value);
+    set('p-cuij', get('cuij').value);
+    set('p-caratula', get('caratula').value);
+    set('p-etapa', get('etapa').value);
+
+    const valorJus = parseFloat(get('valorJus').value) || 0;
+    const totalJus = parseFloat(get('totalJus').value) || 1;
+    const modalidad = document.querySelector('input[name=modalidad]:checked').value;
+    const diaPago = get('diaPago').value || 'Del 1 al 10';
+    const fuenteJus = get('fuenteJus').value;
+
+    // ── anticipo ──
+    const tipoAnticipo = document.querySelector('input[name=tipoAnticipo]:checked').value;
+    const montoAnticipo = parseFloat(get('montoAnticipo').value) || 0;
+    const fechaAnticipo = get('fechaAnticipo').value || 'A la firma del presente';
+    const anticipoBlock = get('anticipoBlock');
+    const anticipoPesos = tipoAnticipo === 'pesos' ? montoAnticipo
+                        : tipoAnticipo === 'jus'   ? montoAnticipo * valorJus
+                        : 0;
+    // mostrar/ocultar bloque y actualizar label
+    if (tipoAnticipo === 'ninguno') {
+      anticipoBlock.style.display = 'none';
+    } else {
+      anticipoBlock.style.display = 'block';
+      get('anticipoLabel').textContent = tipoAnticipo === 'jus' ? 'JUS del anticipo' : 'Monto del anticipo ($)';
+    }
+
+    const tbody = get('p-filas');
+    tbody.innerHTML = '';
+
+    // fila anticipo (si aplica)
+    if (tipoAnticipo !== 'ninguno' && anticipoPesos > 0) {
+      const trAnticipo = document.createElement('tr');
+      trAnticipo.className = 'anticipo';
+      const anticipoJusLabel = tipoAnticipo === 'jus' ? montoAnticipo + ' JUS' : '—';
+      trAnticipo.innerHTML = `<td>★</td><td><strong>ANTICIPO</strong> — ${fechaAnticipo}</td><td style="text-align:center">${anticipoJusLabel}</td><td>${fmt(anticipoPesos)}</td>`;
+      tbody.appendChild(trAnticipo);
+      // separador visual
+      const trSep = document.createElement('tr');
+      trSep.className = 'sep-anticipo';
+      trSep.innerHTML = '<td colspan="4"></td>';
+      tbody.appendChild(trSep);
+    }
+
+    let filas = [];
+
+    if (modalidad === 'unico') {
+      filas.push({
+        n: 1,
+        periodo: 'Pago único',
+        jus: totalJus + ' JUS',
+        importe: fmt(valorJus * totalJus)
+      });
+    } else {
+      const numCuotas = parseInt(get('numCuotas').value) || 1;
+      const jusPorCuota = parseFloat(get('jusPorCuota').value) || 1;
+      const inicio = parseMesAnio(get('mesInicio').value);
+
+      for (let i = 0; i < numCuotas; i++) {
+        const fecha = addMeses(inicio, i);
+        filas.push({
+          n: i + 1,
+          periodo: `${diaPago} de ${MESES[fecha.m]} ${fecha.y}`,
+          jus: jusPorCuota + ' JUS',
+          importe: fmt(valorJus * jusPorCuota)
+        });
+      }
+    }
+
+    filas.forEach(f => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${f.n}</td><td>${f.periodo}</td><td><strong>${f.jus}</strong></td><td>${f.importe}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // total row
+    const cuotasImporte = modalidad === 'unico'
+      ? valorJus * totalJus
+      : (parseFloat(get('jusPorCuota').value)||1) * (parseInt(get('numCuotas').value)||1) * valorJus;
+    const totalImporte = cuotasImporte + anticipoPesos;
+
+    const cuotasJus = modalidad === 'unico'
+      ? totalJus
+      : (parseFloat(get('jusPorCuota').value)||1) * (parseInt(get('numCuotas').value)||1);
+    const totalJusNum = cuotasJus + (tipoAnticipo === 'jus' ? montoAnticipo : 0);
+    const totalJusLabel = totalJusNum + ' JUS';
+
+    const trTotal = document.createElement('tr');
+    trTotal.className = 'total';
+    trTotal.innerHTML = `<td colspan="2" style="text-align:right;letter-spacing:.5px">TOTAL HONORARIOS</td><td style="text-align:center">${totalJusLabel}</td><td>${fmt(totalImporte)}</td>`;
+    tbody.appendChild(trTotal);
+
+    // nota jus
+    get('p-nota').innerHTML =
+      `Valor del JUS arancelario aplicable: ${fmt(valorJus)} — ${fuenteJus}<br>
+       <em>El valor de cada cuota se actualizará conforme al JUS vigente al momento del pago, de acuerdo a la normativa arancelaria aplicable.</em>`;
+
+    // transferencia
+    set('p-alias', get('alias').value);
+    set('p-titular', get('titular').value);
+    set('p-cvu', get('cvu').value);
+    set('p-concepto', `Honorarios — ${get('etapa').value} — ${get('cliente').value} CUIJ ${get('cuij').value}`);
+  }
+
+  // ── fetch JUS desde Cloudflare Worker ──
+  // Una vez deployado el worker, reemplazá esta URL con la tuya
+  const WORKER_URL = 'https://jus-scraper.TU-USUARIO.workers.dev';
+
+  async function fetchJus() {
+    const btn = get('btnActualizar');
+    const status = get('jusStatus');
+    btn.disabled = true;
+    status.className = 'jus-status loading';
+    status.textContent = '⏳ Consultando Caja Forense...';
+    try {
+      const res = await fetch(WORKER_URL, { signal: AbortSignal.timeout(10000) });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      get('valorJus').value = data.valor.toFixed(2);
+      if (data.fecha || data.tabla) {
+        const partes = [
+          data.fecha ? `publicado el ${data.fecha}` : '',
+          data.tabla ? `(${data.tabla})` : '',
+        ].filter(Boolean).join(' ');
+        get('fuenteJus').value = `Tabla vigente ${partes} — Caja Forense`;
+      }
+      status.className = 'jus-status ok';
+      status.textContent = `✓ JUS actualizado: $${Number(data.valor).toLocaleString('es-AR', {minimumFractionDigits:2})}`;
+      render();
+    } catch (err) {
+      status.className = 'jus-status err';
+      if (err.name === 'TimeoutError' || err.message.includes('fetch')) {
+        status.textContent = '⚠ Worker no configurado aún. Ingresá el valor manualmente.';
+      } else {
+        status.textContent = '⚠ No se pudo obtener el JUS: ' + err.message;
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ── etapa select / campo libre ──
+  function onEtapaSelect() {
+    const sel = get('etapaSelect');
+    const input = get('etapa');
+    if (sel.value === '__otro__') {
+      input.style.display = 'block';
+      input.focus();
+      input.value = '';
+    } else {
+      input.style.display = 'none';
+      input.value = sel.value;
+    }
+    render();
+  }
+  // sync inicial
+  get('etapa').value = get('etapaSelect').value;
+
+  // ── modalidad switch ──
+  document.querySelectorAll('input[name=modalidad]').forEach(r => {
+    r.addEventListener('change', () => {
+      get('cuotasBlock').classList.toggle('visible',
+        document.querySelector('input[name=modalidad]:checked').value === 'cuotas');
+      render();
+    });
+  });
+
+  // ── auto-calcular jusPorCuota cuando cambia totalJus o numCuotas ──
+  function syncJusCuota() {
+    const tot = parseFloat(get('totalJus').value) || 0;
+    const n = parseInt(get('numCuotas').value) || 1;
+    if (tot > 0) {
+      get('jusPorCuota').value = (tot / n).toFixed(2);
+    }
+  }
+
+  get('totalJus').addEventListener('input', () => { syncJusCuota(); render(); });
+  get('numCuotas').addEventListener('input', () => { syncJusCuota(); render(); });
+
+  // ── listeners genéricos ──
+  ['firma','abogado','especialidad','direccion','cliente','cuij','caratula','etapa',
+   'valorJus','fuenteJus','jusPorCuota','mesInicio','diaPago','alias','titular','cvu',
+   'montoAnticipo','fechaAnticipo']
+    .forEach(id => get(id)?.addEventListener('input', render));
+
+  render();
+</script>
+</body>
+</html>
