@@ -143,6 +143,21 @@
   }
   .btn-print:hover { background: var(--navy-mid); }
 
+  .btn-recibo {
+    width: 100%;
+    padding: 10px;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: .3px;
+  }
+  .btn-recibo:hover { background: #155f5f; }
+
   .jus-note {
     font-size: 11px;
     color: #666;
@@ -512,6 +527,7 @@
     <input type="text" id="cvu" value="0000003100064237722218">
 
     <button class="btn-print" onclick="window.print()">🖨 Imprimir / Exportar PDF</button>
+    <button class="btn-recibo" onclick="generarRecibo()">🧾 Generar Recibo de Pago</button>
   </aside>
 
   <!-- ══ PREVIEW ══ -->
@@ -685,6 +701,10 @@
     trTotal.innerHTML = `<td colspan="2" style="text-align:right;letter-spacing:.5px">TOTAL HONORARIOS</td><td style="text-align:center">${totalJusLabel}</td><td>${fmt(totalImporte)}</td>`;
     tbody.appendChild(trTotal);
 
+    // para el botón "Generar Recibo"
+    window.__totalImporte = totalImporte;
+    window.__totalJusNum = totalJusNum;
+
     // nota jus
     get('p-nota').innerHTML =
       `Valor del JUS arancelario aplicable: ${fmt(valorJus)} — ${fuenteJus}<br>
@@ -779,6 +799,25 @@
     .forEach(id => get(id)?.addEventListener('input', render));
 
   render();
+
+  // ── generar recibo de pago (abre recibo-honorarios precargado) ──
+  function generarRecibo() {
+    const concepto = `Pago a cuenta de Honorarios Profesionales — ${get('etapa').value}`;
+    const params = new URLSearchParams({
+      firma: get('firma').value,
+      abogado: get('abogado').value,
+      especialidad: get('especialidad').value,
+      direccion: get('direccion').value,
+      cliente: get('cliente').value,
+      caratula: get('caratula').value,
+      ncausa: get('cuij').value,
+      etapa: get('etapa').value,
+      concepto,
+      total: (window.__totalImporte || 0).toFixed(2),
+      jus: window.__totalJusNum || ''
+    });
+    window.open('../recibo-honorarios/?' + params.toString(), '_blank');
+  }
 </script>
 </body>
 </html>
