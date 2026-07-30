@@ -378,6 +378,25 @@
   .tbl-trf .alias-val { font-weight: bold; font-size: 14px; }
   .tbl-trf .cvu-val { font-family: monospace; font-size: 12px; letter-spacing: .5px; }
 
+  /* Advertencia legal / confidencialidad */
+  .doc-legal {
+    margin-top: 26px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 9px;
+    line-height: 1.55;
+    color: #777;
+    text-align: justify;
+  }
+  .doc-legal strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 9.5px;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #555;
+  }
+
   /* ── PRINT ── */
   @media print {
     body { background: #fff; }
@@ -572,6 +591,15 @@
         <tr><td>CVU</td><td><span class="cvu-val" id="p-cvu">0000003100064237722218</span></td></tr>
         <tr><td>Concepto</td><td id="p-concepto"></td></tr>
       </table>
+
+      <div class="doc-legal">
+        <strong>Advertencia legal – Documento confidencial</strong>
+        El presente presupuesto, junto con toda la información, documentación, metodología, estrategia profesional, honorarios y demás contenidos que en él se incluyen, tiene carácter estrictamente confidencial y ha sido elaborado exclusivamente para su destinatario.<br><br>
+        Queda estrictamente prohibida su reproducción, copia, digitalización, remisión, publicación, difusión, exhibición, cesión o distribución, total o parcial, por cualquier medio, sin la autorización previa, expresa y por escrito del Estudio.<br><br>
+        Toda utilización, circulación o divulgación no autorizada será considerada una violación al deber de confidencialidad y a los derechos del Estudio, reservándose éste el ejercicio inmediato de todas las acciones judiciales que pudieran corresponder, incluyendo el reclamo por daños y perjuicios, el dictado de medidas cautelares tendientes al cese de la conducta lesiva y cualquier otra acción prevista por la legislación argentina para la tutela de sus derechos e intereses legítimos.<br><br>
+        El Estudio se reserva el derecho de identificar el origen de cualquier difusión no autorizada y de perseguir las responsabilidades legales de quienes intervengan en ella.<br><br>
+        La recepción del presente documento implica el conocimiento y aceptación de su carácter estrictamente reservado y confidencial.
+      </div>
 
     </div>
   </main>
